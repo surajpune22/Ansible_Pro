@@ -1,0 +1,42 @@
+---
+ - hosts: ALL_SERVERS
+   remote_user: ansible
+   become_method: sudo
+   become: yes
+   tasks:
+   - name: Installing the latest version of httpd
+     dnf:
+       name: httpd
+       state: latest
+   - name: Ensure apache is running
+     service:
+       name: httpd
+       state: started
+   - name: Installing git on the server
+     dnf:
+       name: git
+       state: latest
+   - name: Initializing the git on the respective path
+     shell:
+       chdir: /home/ansible
+       cmd: git init
+   - name: Checking the stat of the httpd.conf file
+     shell: "ls -lrth"
+     args:
+       chdir: "/etc/httpd/conf"
+     register: find_output
+   - debug:
+       var: find_output
+
+ - hosts: WEB_SERVERS
+   remote_user: ansible
+   become_method: sudo
+   become: yes
+   tasks:
+   - name: Replacing te httpd.conf file with custom file
+     copy:
+       src: "/home/ansible/ansible-project/httpd.conf"
+       dest: "/etc/httpd/conf/httpd.conf"
+       owner: root
+       group: root
+       mode: '0644'
